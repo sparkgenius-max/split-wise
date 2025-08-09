@@ -17,7 +17,7 @@ import {
   type InsertExpenseSplit,
   type Settlement,
   type InsertSettlement,
-} from "@shared/schema";
+} from "../shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sum, sql } from "drizzle-orm";
 
