@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { DialogHeader, DialogTitle } from "@/components/ui/dialog";
 export function ExpenseForm() {
   const { toast } = useToast();
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const { user } = useAuth();
 
   const { data: groups = [] } = useQuery({
     queryKey: ["/api/groups"],
@@ -69,6 +71,16 @@ export function ExpenseForm() {
       return;
     }
 
+    const totalAmount = parseFloat(amount);
+    if (totalAmount <= 0) {
+      toast({
+        title: "Error",
+        description: "Amount must be greater than 0.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const selectedGroup = groups.find((g: any) => g.id === groupId);
     if (!selectedGroup) {
       toast({
@@ -79,16 +91,26 @@ export function ExpenseForm() {
       return;
     }
 
-    // Calculate equal splits among all group members
+    // Calculate equal splits among all group members (excluding the payer)
     const memberCount = selectedGroup.memberCount;
-    const totalAmount = parseFloat(amount);
-    const splitAmount = totalAmount / memberCount;
+    if (memberCount <= 1) {
+      toast({
+        title: "Error",
+        description: "Group must have at least 2 members to split expenses.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const splits = selectedGroup.members.map((member: any) => ({
-      userId: member.id,
-      amount: splitAmount.toFixed(2),
-      settled: false,
-    }));
+    const splitAmount = totalAmount / (memberCount - 1); // Exclude the payer
+
+    const splits = selectedGroup.members
+      .filter((member: any) => member.id !== user?.id) // Exclude the payer
+      .map((member: any) => ({
+        userId: member.id,
+        amount: splitAmount.toFixed(2),
+        settled: false,
+      }));
 
     createExpenseMutation.mutate({
       title: title.trim(),

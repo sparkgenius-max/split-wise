@@ -203,7 +203,11 @@ export class DatabaseStorage implements IStorage {
         );
 
       const userShare = userSplit ? parseFloat(userSplit.amount) : 0;
-      const actualShare = expense.paidBy === userId ? userShare - parseFloat(expense.amount) : userShare;
+      // If user paid for the expense, their share is what they paid minus what they owe
+      // If someone else paid, their share is just what they owe
+      const actualShare = expense.paidBy === userId 
+        ? parseFloat(expense.amount) - userShare 
+        : -userShare;
 
       result.push({
         ...expense,

@@ -12,9 +12,7 @@ import Activity from "@/pages/activity";
 import Profile from "@/pages/profile";
 import { BottomNav } from "@/components/bottom-nav";
 
-function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
-
+function Router({ isAuthenticated, isLoading }: { isAuthenticated: boolean; isLoading: boolean }) {
   if (isLoading) {
     return (
       <div className="max-w-sm mx-auto bg-white min-h-screen flex items-center justify-center">
@@ -44,14 +42,22 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="bg-gray-50 min-h-screen">
-          <Router />
-          {/* Bottom navigation will only show for authenticated users */}
-          <BottomNav />
-        </div>
-        <Toaster />
+        <AppContent />
       </TooltipProvider>
     </QueryClientProvider>
+  );
+}
+
+function AppContent() {
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  return (
+    <div className="bg-gray-50 min-h-screen">
+      <Router isAuthenticated={isAuthenticated} isLoading={isLoading} />
+      {/* Bottom navigation will only show for authenticated users */}
+      {isAuthenticated && <BottomNav />}
+      <Toaster />
+    </div>
   );
 }
 

@@ -23,10 +23,12 @@ export default function Home() {
         description: "You are logged out. Logging in again...",
         variant: "destructive",
       });
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         window.location.href = "/api/login";
       }, 500);
-      return;
+      
+      // Cleanup timeout on unmount
+      return () => clearTimeout(timeoutId);
     }
   }, [isAuthenticated, isLoading, toast]);
 
